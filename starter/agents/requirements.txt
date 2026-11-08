@@ -1,0 +1,37 @@
+# Install:  pip install -r agents/requirements.txt
+# Then:     python -m spacy download en_core_web_lg   (NLP model required by Presidio)
+
+# Azure services
+azure-identity
+azure-keyvault-secrets
+azure-storage-blob
+azure-ai-contentsafety
+
+# Database drivers
+pymongo<4.11   # Cosmos DB for MongoDB (RU, server 3.6) needs wire version 6; 4.11+ dropped it
+dnspython
+psycopg[binary]
+sqlalchemy
+
+# LangChain ecosystem
+langchain-community
+langchain-openai
+langchain-chroma
+langgraph
+
+# ML & embeddings
+torch
+transformers
+
+# Ethical safeguards
+fairlearn
+presidio-analyzer
+
+# Data & visualization
+pandas
+numpy
+matplotlib
+Pillow
+
+# Data loading scripts (data/*.py)
+PyPDF2
