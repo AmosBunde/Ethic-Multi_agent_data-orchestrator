@@ -1,5 +1,6 @@
 from azure.storage.blob import BlobServiceClient
 from io import BytesIO
+import hashlib
 import warnings
 warnings.filterwarnings("ignore", message="Field.*conflict with protected namespace")
 import os
@@ -43,7 +44,7 @@ class MultimodalDataAgent:
 
         # Azure Content Safety
         self.content_safety_client = ContentSafetyClient(endpoint=content_safety_endpoint, credential=AzureKeyCredential(content_safety_key))
-        self._safety_cache = {}  # blob_name -> analysis dict, avoids re-analysing in show_results
+        self._safety_cache = {}  # sha256(image bytes) -> analysis dict
 
     # ============================================
     # PRIVATE METHODS
@@ -76,9 +77,12 @@ class MultimodalDataAgent:
         blob = self.container_client.get_blob_client(blob_name)
         image_bytes = blob.download_blob().readall()
 
-        if blob_name not in self._safety_cache:
-            self._safety_cache[blob_name] = self.__analyze_image(image_bytes, blob_name)
-        analysis = self._safety_cache[blob_name]
+        # Cache by content hash, so a blob replaced between the search and the
+        # rendering step is re-screened instead of reusing a stale verdict.
+        digest = hashlib.sha256(image_bytes).hexdigest()
+        if digest not in self._safety_cache:
+            self._safety_cache[digest] = self.__analyze_image(image_bytes, blob_name)
+        analysis = self._safety_cache[digest]
 
         return Image.open(BytesIO(image_bytes)).convert("RGB"), analysis
 
@@ -189,7 +193,10 @@ class MultimodalDataAgent:
         plt.axis("off")
 
         for i, (score, blob_name, address) in enumerate(matches, start=2):
-            img, _ = self.__load_image_from_blob(blob_name)
+            img, analysis = self.__load_image_from_blob(blob_name)
+            if analysis["flagged"]:
+                print(f"Not rendering {blob_name}: failed content safety on re-check")
+                continue
 
             plt.subplot(1, ncols, i)
             plt.imshow(img)

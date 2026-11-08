@@ -159,8 +159,9 @@ Answer clearly and concisely:
             audit["pii_in_sources"] = self.__detect_pii(str(source_docs), label="source documents")
 
             # Actionable check: PII that leaked into the generated answer is redacted
-            # before the answer leaves the agent.
-            audit["pii_in_answer"] = self.__detect_pii(answer, label="generated answer")
+            # before the answer leaves the agent. Redaction uses a lower confidence
+            # threshold than the report so that it fails closed, not open.
+            audit["pii_in_answer"] = self.__detect_pii(answer, label="generated answer", min_score=0.4)
             if audit["pii_in_answer"]:
                 answer = self.__redact(answer, audit["pii_in_answer"])
                 audit["redacted"] = True
@@ -208,20 +209,28 @@ Answer clearly and concisely:
                 found.append({
                     "entity_type": r.entity_type,
                     "text": pii_text,
+                    "masked": self.__mask(pii_text),
                     "score": round(float(r.score), 2),
                     "start": r.start,
                     "end": r.end,
                 })
 
         if found:
+            # Console and logs show a masked form only; the raw value stays in memory
+            # just long enough to redact it from the answer.
             print(f"\nWARNING: PII detected in {label}:")
             for f in found:
-                print(f"- {f['entity_type']}: '{f['text']}' (confidence={f['score']:.2f})")
+                print(f"- {f['entity_type']}: '{f['masked']}' (confidence={f['score']:.2f})")
             print("\n")
         else:
             print(f"\n No PII detected in {label}.\n")
 
         return found
+
+    @staticmethod
+    def __mask(value: str) -> str:
+        """Keep the first two characters so the operator can recognise the hit."""
+        return value[:2] + "*" * max(3, len(value) - 2)
 
     @staticmethod
     def __redact(text: str, entities: list) -> str:

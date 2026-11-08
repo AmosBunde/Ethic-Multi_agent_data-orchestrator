@@ -85,12 +85,16 @@ class OnePromptCredential:
                 self._tokens[key] = AccessToken(item["token"], item["expires_on"])
 
     def _save(self):
-        _TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        os.chmod(_TOKEN_FILE.parent, 0o700)
         payload = {k: {"token": t.token, "expires_on": t.expires_on} for k, t in self._tokens.items()}
         tmp = _TOKEN_FILE.with_suffix(".tmp")
-        tmp.write_text(json.dumps(payload))
-        os.chmod(tmp, 0o600)
-        tmp.replace(_TOKEN_FILE)
+        if tmp.exists():
+            tmp.unlink()
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "w") as f:
+            f.write(json.dumps(payload))
+        os.replace(tmp, _TOKEN_FILE)
 
 
 def get_credential() -> OnePromptCredential:

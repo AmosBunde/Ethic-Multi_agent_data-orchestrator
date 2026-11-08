@@ -70,6 +70,8 @@ class AuditLogger:
     def __init__(self, path):
         self.path = path
         os.makedirs(os.path.dirname(path), exist_ok=True)
+        if not os.path.exists(path):
+            os.close(os.open(path, os.O_WRONLY | os.O_CREAT, 0o600))
 
     def record(self, **entry):
         entry = {"timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"), **entry}
@@ -332,9 +334,12 @@ class AgentChatManager:
 
             return "I could not determine the correct agent."
         except Exception as e:
+            # Log the exception class and a short message only; full tracebacks can
+            # carry connection strings or data values.
             self.audit.record(query=user_message, agent=route, check="error", flagged=None,
-                              action="error_returned", error=str(e)[:500], latency_s=None)
-            return f"An error occurred while processing your request with the {route} agent: {e}"
+                              action="error_returned", error=f"{type(e).__name__}: {str(e)[:200]}",
+                              latency_s=None)
+            return f"An error occurred while processing your request with the {route} agent: {type(e).__name__}"
 
 
 # ============================================================
