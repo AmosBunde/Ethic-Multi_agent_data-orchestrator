@@ -1,0 +1,1130 @@
+Logging to /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/experiment_20261108_165921.log
+
+
+################################################################################
+# STEP 0  Azure sign-in (device code)
+################################################################################
+
+Signed in (cached login reused when available).
+
+################################################################################
+# STEP 1  Verify Key Vault secrets
+################################################################################
+
+Vault: https://structuredazureendpoint.vault.azure.net/
+To sign in, use a web browser to open the page https://login.microsoft.com/device and enter the code EMCXDB35B to authenticate.
+  ok       ai-endpoint
+  ok       ai-key
+  ok       postgres-host
+  ok       postgres-database
+  ok       postgres-user
+  ok       postgres-password
+  ok       mongodb-connection-string
+  ok       mongodb-database
+  ok       blob-connection-string
+  ok       content-safety-endpoint
+  ok       content-safety-key
+
+All expected secrets present.
+
+################################################################################
+# STEP 2c  Ensure house images are in Blob Storage container 'houses'
+################################################################################
+
+  uploaded 126_Briarwood_Drive_Ashford.jpg
+  uploaded 12_Kingsley_Drive.jpg
+  uploaded 15_Rosedale_Avenue.jpg
+  uploaded 203_Hillcrest_Lane_Kingsley.jpg
+  uploaded 274_Maplewood_Crescent.jpg
+  uploaded 33_Maplewood_Lane.jpg
+  uploaded 402_Rosedale_Parkway.jpg
+  uploaded 48_Oakridge_Court_Kingsley.jpg
+  uploaded 510_West_Maplewood_Road.jpg
+  uploaded 77_Maple_Ridge_Road_Rosedale.jpg
+  uploaded 82_Kingsley_Park_Drive.jpg
+  uploaded 9_Ashford_Terrace.jpg
+Container 'houses': 0 already present, 12 uploaded, 12 total
+
+################################################################################
+# STEP 3  Start chat manager (loads all three agents)
+################################################################################
+
+Connecting to Azure for authentication.
+
+Loading Structured Data Agent
+-------------------------------
+
+Loading Unstructured Data Agent
+---------------------------------
+Loading documents from MongoDB...
+Embedding 21 documents...
+Vector index built.
+Vector DB size: 21
+
+Loading Multimodal Data Agent
+-------------------------------
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights: 100%|##########| 398/398 [00:00<00:00, 23534.27it/s]
+
+################################################################################
+# QUERY [structured]  Which demographic group has the most expensive homes?
+################################################################################
+
+You: Which demographic group has the most expensive homes?
+[Router] Selected agent: structured
+
+================================================================================
+Using Strucutred Data stored in PostgresQL database to answer question
+Performing a Fairness audit before providing answer
+================================================================================
+
+----------------------------------------------------------------------
+TABLE: education_survey
+DEMOGRAPHIC COLUMN: education_level
+----------------------------------------------------------------------
+
+Analyzing column: neighborhood
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+neighborhood     Ashford  Huntington  Kingsley  Maplewood  Rosedale
+education_level                                                    
+Bachelors          18.53       19.50     19.98      21.53     20.47
+None               15.13       19.93     21.77      23.25     19.93
+Postgraduate       19.60       21.78     22.57      17.03     19.01
+Technical          18.89       21.86     19.15      19.92     20.18
+
+Analyzing column: employment_status
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+employment_status  Full-time  Part-time  Retired  Unemployed
+education_level                                             
+Bachelors              50.34      18.33    15.13       16.20
+None                   46.13      24.35    16.61       12.92
+Postgraduate           56.44      18.22    11.09       14.26
+Technical              50.19      18.89    15.27       15.65
+
+Analyzing column: age
+Type: Numeric (distribution fairness)
+
+Mean by group:
+education_level
+Bachelors       49.698351
+None            49.398524
+Postgraduate    49.037624
+Technical       48.474774
+Name: age, dtype: float64
+Mean ratio (min/max): 0.975
+No major disparity
+
+Analyzing column: years_of_experience
+Type: Numeric (distribution fairness)
+
+Mean by group:
+education_level
+Bachelors       10.891368
+None            10.217712
+Postgraduate    12.041584
+Technical       10.755498
+Name: years_of_experience, dtype: float64
+Mean ratio (min/max): 0.849
+No major disparity
+
+Analyzing column: annual_income
+Type: Numeric (distribution fairness)
+
+Mean by group:
+education_level
+Bachelors       51757.326867
+None            14624.328413
+Postgraduate    77150.534653
+Technical       29505.276843
+Name: annual_income, dtype: float64
+Mean ratio (min/max): 0.190
+Large disparity detected
+
+Analyzing column: gender
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+gender           Female   Male  Other
+education_level                      
+Bachelors         44.71  50.34   4.95
+None              46.86  48.34   4.80
+Postgraduate      49.70  45.74   4.55
+Technical         45.92  49.94   4.14
+
+Analyzing column: household_size
+Type: Numeric (distribution fairness)
+
+Mean by group:
+education_level
+Bachelors       4.049467
+None            4.140221
+Postgraduate    4.114851
+Technical       3.864166
+Name: household_size, dtype: float64
+Mean ratio (min/max): 0.933
+No major disparity
+
+----------------------------------------------------------------------
+TABLE: education_survey
+DEMOGRAPHIC COLUMN: age
+----------------------------------------------------------------------
+Skipping: demographic column has more than 10 distinct groups (continuous attribute, bucket it first)
+
+----------------------------------------------------------------------
+TABLE: education_survey
+DEMOGRAPHIC COLUMN: gender
+----------------------------------------------------------------------
+
+Analyzing column: neighborhood
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+neighborhood  Ashford  Huntington  Kingsley  Maplewood  Rosedale
+gender                                                          
+Female          19.10       20.69     19.77      19.60     20.85
+Male            18.23       19.89     20.76      20.92     20.21
+Other           15.13       29.41     23.53      21.85     10.08
+
+Analyzing column: education_level
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+education_level  Bachelors   None  Postgraduate  Technical
+gender                                                    
+Female               38.61  10.64         21.02      29.73
+Male                 40.96  10.34         18.23      30.47
+Other                42.86  10.92         19.33      26.89
+
+Analyzing column: employment_status
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+employment_status  Full-time  Part-time  Retired  Unemployed
+gender                                                      
+Female                 50.92      19.77    14.49       14.82
+Male                   51.30      18.63    14.36       15.71
+Other                  49.58      17.65    16.81       15.97
+
+Analyzing column: age
+Type: Numeric (distribution fairness)
+
+Mean by group:
+gender
+Female    49.260469
+Male      48.823204
+Other     51.974790
+Name: age, dtype: float64
+Mean ratio (min/max): 0.939
+No major disparity
+
+Analyzing column: years_of_experience
+Type: Numeric (distribution fairness)
+
+Mean by group:
+gender
+Female    11.389447
+Male      10.603788
+Other     11.420168
+Name: years_of_experience, dtype: float64
+Mean ratio (min/max): 0.929
+No major disparity
+
+Analyzing column: annual_income
+Type: Numeric (distribution fairness)
+
+Mean by group:
+gender
+Female    46384.345059
+Male      45943.429361
+Other     46221.537815
+Name: annual_income, dtype: float64
+Mean ratio (min/max): 0.990
+No major disparity
+
+Analyzing column: household_size
+Type: Numeric (distribution fairness)
+
+Mean by group:
+gender
+Female    3.995812
+Male      4.038674
+Other     3.983193
+Name: household_size, dtype: float64
+Mean ratio (min/max): 0.986
+No major disparity
+
+----------------------------------------------------------------------
+TABLE: neighborhood_houses
+DEMOGRAPHIC COLUMN: identified_race
+----------------------------------------------------------------------
+
+Analyzing column: house_number
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       2857.479964
+Black       2845.080340
+Hispanic    2753.215722
+Other       2731.419680
+White       2667.145911
+Name: house_number, dtype: float64
+Mean ratio (min/max): 0.933
+No major disparity
+
+Analyzing column: neighborhood
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+neighborhood     Ashford  Huntington  Kingsley  Maplewood  Rosedale
+identified_race                                                    
+Asian              14.78       20.93     19.95      24.49     19.86
+Black              14.74       20.23     19.09      24.20     21.74
+Hispanic           14.81       19.10     20.02      27.42     18.65
+Other              14.89       21.03     19.34      24.98     19.76
+White              14.31       17.75     20.91      26.49     20.54
+
+Analyzing column: household_income
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       140459.620659
+Black       139900.642722
+Hispanic    141870.096892
+Other       134645.841884
+White       139378.630112
+Name: household_income, dtype: float64
+Mean ratio (min/max): 0.949
+No major disparity
+
+Analyzing column: house_size_sqf
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       2879.314337
+Black       2854.746692
+Hispanic    2876.762340
+Other       2861.952061
+White       2895.314126
+Name: house_size_sqf, dtype: float64
+Mean ratio (min/max): 0.986
+No major disparity
+
+Analyzing column: house_market_value
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       813941.445236
+Black       800168.930057
+Hispanic    782294.106947
+Other       808920.538267
+White       798496.228625
+Name: house_market_value, dtype: float64
+Mean ratio (min/max): 0.961
+No major disparity
+
+Analyzing column: family_size
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       4.027605
+Black       4.155955
+Hispanic    4.106033
+Other       3.989066
+White       4.094796
+Name: family_size, dtype: float64
+Mean ratio (min/max): 0.960
+No major disparity
+
+Analyzing column: swimming_pool
+Type: Binary (classification fairness)
+Positive label: np.True_
+
+Selection Rate by Group:
+                 selection_rate
+identified_race                
+Asian                  0.196794
+Black                  0.213611
+Hispanic               0.209324
+Other                  0.184188
+White                  0.211896
+Demographic Parity Difference: 0.0294
+Within fairness threshold
+
+Analyzing column: ownership
+Type: Binary (classification fairness)
+Positive label: 'Rent'
+
+Selection Rate by Group:
+                 selection_rate
+identified_race                
+Asian                  0.286732
+Black                  0.302457
+Hispanic               0.261426
+Other                  0.291001
+White                  0.311338
+Demographic Parity Difference: 0.0499
+Within fairness threshold
+[Audit] agent=structured check=fairlearn_bias_audit flagged=True action=fairness_advisory_prepended (19.6s) -> /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/audit_log.jsonl
+
+Agent: FAIRNESS ADVISORY: the data behind this answer shows disparities across education_level. Examples: education_survey.annual_income by education_level (mean_ratio_min_max=0.19). Group-level comparisons should not be used to make decisions about individuals.
+
+The demographic group with the most expensive homes is the Asian group, with an average house market value of approximately 813,941.45.
+
+
+################################################################################
+# QUERY [structured]  How many houses have a swimming pool in each neighborhood?
+################################################################################
+
+You: How many houses have a swimming pool in each neighborhood?
+[Router] Selected agent: structured
+
+================================================================================
+Using Strucutred Data stored in PostgresQL database to answer question
+Performing a Fairness audit before providing answer
+================================================================================
+
+----------------------------------------------------------------------
+TABLE: education_survey
+DEMOGRAPHIC COLUMN: education_level
+----------------------------------------------------------------------
+
+Analyzing column: neighborhood
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+neighborhood     Ashford  Huntington  Kingsley  Maplewood  Rosedale
+education_level                                                    
+Bachelors          18.53       19.50     19.98      21.53     20.47
+None               15.13       19.93     21.77      23.25     19.93
+Postgraduate       19.60       21.78     22.57      17.03     19.01
+Technical          18.89       21.86     19.15      19.92     20.18
+
+Analyzing column: employment_status
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+employment_status  Full-time  Part-time  Retired  Unemployed
+education_level                                             
+Bachelors              50.34      18.33    15.13       16.20
+None                   46.13      24.35    16.61       12.92
+Postgraduate           56.44      18.22    11.09       14.26
+Technical              50.19      18.89    15.27       15.65
+
+Analyzing column: age
+Type: Numeric (distribution fairness)
+
+Mean by group:
+education_level
+Bachelors       49.698351
+None            49.398524
+Postgraduate    49.037624
+Technical       48.474774
+Name: age, dtype: float64
+Mean ratio (min/max): 0.975
+No major disparity
+
+Analyzing column: years_of_experience
+Type: Numeric (distribution fairness)
+
+Mean by group:
+education_level
+Bachelors       10.891368
+None            10.217712
+Postgraduate    12.041584
+Technical       10.755498
+Name: years_of_experience, dtype: float64
+Mean ratio (min/max): 0.849
+No major disparity
+
+Analyzing column: annual_income
+Type: Numeric (distribution fairness)
+
+Mean by group:
+education_level
+Bachelors       51757.326867
+None            14624.328413
+Postgraduate    77150.534653
+Technical       29505.276843
+Name: annual_income, dtype: float64
+Mean ratio (min/max): 0.190
+Large disparity detected
+
+Analyzing column: gender
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+gender           Female   Male  Other
+education_level                      
+Bachelors         44.71  50.34   4.95
+None              46.86  48.34   4.80
+Postgraduate      49.70  45.74   4.55
+Technical         45.92  49.94   4.14
+
+Analyzing column: household_size
+Type: Numeric (distribution fairness)
+
+Mean by group:
+education_level
+Bachelors       4.049467
+None            4.140221
+Postgraduate    4.114851
+Technical       3.864166
+Name: household_size, dtype: float64
+Mean ratio (min/max): 0.933
+No major disparity
+
+----------------------------------------------------------------------
+TABLE: education_survey
+DEMOGRAPHIC COLUMN: age
+----------------------------------------------------------------------
+Skipping: demographic column has more than 10 distinct groups (continuous attribute, bucket it first)
+
+----------------------------------------------------------------------
+TABLE: education_survey
+DEMOGRAPHIC COLUMN: gender
+----------------------------------------------------------------------
+
+Analyzing column: neighborhood
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+neighborhood  Ashford  Huntington  Kingsley  Maplewood  Rosedale
+gender                                                          
+Female          19.10       20.69     19.77      19.60     20.85
+Male            18.23       19.89     20.76      20.92     20.21
+Other           15.13       29.41     23.53      21.85     10.08
+
+Analyzing column: education_level
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+education_level  Bachelors   None  Postgraduate  Technical
+gender                                                    
+Female               38.61  10.64         21.02      29.73
+Male                 40.96  10.34         18.23      30.47
+Other                42.86  10.92         19.33      26.89
+
+Analyzing column: employment_status
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+employment_status  Full-time  Part-time  Retired  Unemployed
+gender                                                      
+Female                 50.92      19.77    14.49       14.82
+Male                   51.30      18.63    14.36       15.71
+Other                  49.58      17.65    16.81       15.97
+
+Analyzing column: age
+Type: Numeric (distribution fairness)
+
+Mean by group:
+gender
+Female    49.260469
+Male      48.823204
+Other     51.974790
+Name: age, dtype: float64
+Mean ratio (min/max): 0.939
+No major disparity
+
+Analyzing column: years_of_experience
+Type: Numeric (distribution fairness)
+
+Mean by group:
+gender
+Female    11.389447
+Male      10.603788
+Other     11.420168
+Name: years_of_experience, dtype: float64
+Mean ratio (min/max): 0.929
+No major disparity
+
+Analyzing column: annual_income
+Type: Numeric (distribution fairness)
+
+Mean by group:
+gender
+Female    46384.345059
+Male      45943.429361
+Other     46221.537815
+Name: annual_income, dtype: float64
+Mean ratio (min/max): 0.990
+No major disparity
+
+Analyzing column: household_size
+Type: Numeric (distribution fairness)
+
+Mean by group:
+gender
+Female    3.995812
+Male      4.038674
+Other     3.983193
+Name: household_size, dtype: float64
+Mean ratio (min/max): 0.986
+No major disparity
+
+----------------------------------------------------------------------
+TABLE: neighborhood_houses
+DEMOGRAPHIC COLUMN: identified_race
+----------------------------------------------------------------------
+
+Analyzing column: house_number
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       2857.479964
+Black       2845.080340
+Hispanic    2753.215722
+Other       2731.419680
+White       2667.145911
+Name: house_number, dtype: float64
+Mean ratio (min/max): 0.933
+No major disparity
+
+Analyzing column: neighborhood
+Type: Categorical (distribution comparison)
+
+Percentage distribution by group:
+neighborhood     Ashford  Huntington  Kingsley  Maplewood  Rosedale
+identified_race                                                    
+Asian              14.78       20.93     19.95      24.49     19.86
+Black              14.74       20.23     19.09      24.20     21.74
+Hispanic           14.81       19.10     20.02      27.42     18.65
+Other              14.89       21.03     19.34      24.98     19.76
+White              14.31       17.75     20.91      26.49     20.54
+
+Analyzing column: household_income
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       140459.620659
+Black       139900.642722
+Hispanic    141870.096892
+Other       134645.841884
+White       139378.630112
+Name: household_income, dtype: float64
+Mean ratio (min/max): 0.949
+No major disparity
+
+Analyzing column: house_size_sqf
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       2879.314337
+Black       2854.746692
+Hispanic    2876.762340
+Other       2861.952061
+White       2895.314126
+Name: house_size_sqf, dtype: float64
+Mean ratio (min/max): 0.986
+No major disparity
+
+Analyzing column: house_market_value
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       813941.445236
+Black       800168.930057
+Hispanic    782294.106947
+Other       808920.538267
+White       798496.228625
+Name: house_market_value, dtype: float64
+Mean ratio (min/max): 0.961
+No major disparity
+
+Analyzing column: family_size
+Type: Numeric (distribution fairness)
+
+Mean by group:
+identified_race
+Asian       4.027605
+Black       4.155955
+Hispanic    4.106033
+Other       3.989066
+White       4.094796
+Name: family_size, dtype: float64
+Mean ratio (min/max): 0.960
+No major disparity
+
+Analyzing column: swimming_pool
+Type: Binary (classification fairness)
+Positive label: np.True_
+
+Selection Rate by Group:
+                 selection_rate
+identified_race                
+Asian                  0.196794
+Black                  0.213611
+Hispanic               0.209324
+Other                  0.184188
+White                  0.211896
+Demographic Parity Difference: 0.0294
+Within fairness threshold
+
+Analyzing column: ownership
+Type: Binary (classification fairness)
+Positive label: 'Rent'
+
+Selection Rate by Group:
+                 selection_rate
+identified_race                
+Asian                  0.286732
+Black                  0.302457
+Hispanic               0.261426
+Other                  0.291001
+White                  0.311338
+Demographic Parity Difference: 0.0499
+Within fairness threshold
+[Audit] agent=structured check=fairlearn_bias_audit flagged=True action=fairness_advisory_prepended (20.2s) -> /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/audit_log.jsonl
+
+Agent: FAIRNESS ADVISORY: the data behind this answer shows disparities across education_level. Examples: education_survey.annual_income by education_level (mean_ratio_min_max=0.19). Group-level comparisons should not be used to make decisions about individuals.
+
+Here is the number of houses with a swimming pool in each neighborhood:
+- Kingsley: 207 houses
+- Rosedale: 265 houses
+- Ashford: 153 houses
+- Maplewood: 268 houses
+- Huntington: 230 houses
+
+
+################################################################################
+# QUERY [unstructured]  Was a permit approved for a restaurant in any of the neighborhoods?
+################################################################################
+
+You: Was a permit approved for a restaurant in any of the neighborhoods?
+[Router] Selected agent: unstructured
+
+================================================================================
+Using Unstrucutred Data stored in MongoDB database to answer question
+Seraching for PII data in source documents
+================================================================================
+
+WARNING: PII detected in source documents:
+- DATE_TIME: 'No********' (confidence=0.85)
+- PERSON: 'Tr********************************' (confidence=0.85)
+- LOCATION: 'MI***' (confidence=0.85)
+- NRP: 'In*****************' (confidence=0.85)
+- LOCATION: 'Ma********************' (confidence=0.85)
+- PERSON: 'Ma*******' (confidence=0.85)
+- DATE_TIME: 'Oc*******' (confidence=0.85)
+- DATE_TIME: '20********' (confidence=0.85)
+- DATE_TIME: 'fo***************************' (confidence=0.85)
+- DATE_TIME: '7:*****' (confidence=0.85)
+- DATE_TIME: '6:*****' (confidence=0.85)
+- DATE_TIME: 'Mo****' (confidence=0.85)
+- PERSON: 'Re**************************' (confidence=0.85)
+- PERSON: 'Re*****' (confidence=0.85)
+- DATE_TIME: 'Ju*****' (confidence=0.85)
+- PERSON: 'Ly*********************************' (confidence=0.85)
+- LOCATION: 'As*****' (confidence=0.85)
+- LOCATION: 'NC***' (confidence=0.85)
+- PERSON: 'Ki********************************' (confidence=0.85)
+- LOCATION: 'Ki**********' (confidence=0.85)
+- LOCATION: 'Ki*******************' (confidence=0.85)
+- PERSON: 'Ki******' (confidence=0.85)
+- DATE_TIME: 'Ma****' (confidence=0.85)
+- PERSON: 'in*************' (confidence=0.85)
+- PERSON: 'Ha*************************' (confidence=0.85)
+- LOCATION: 'Ci****************' (confidence=0.85)
+- LOCATION: 'NC******' (confidence=0.85)
+- EMAIL_ADDRESS: 'hw**********************' (confidence=1.00)
+- DATE_TIME: 'Fe*********' (confidence=0.85)
+- PERSON: 'Ma**********************' (confidence=0.85)
+- LOCATION: 'La******' (confidence=0.85)
+- LOCATION: 'Hu*******************' (confidence=0.85)
+- LOCATION: 'Hu*********************' (confidence=0.85)
+- LOCATION: 'St**********' (confidence=0.85)
+- DATE_TIME: 'Ja********' (confidence=0.85)
+- DATE_TIME: 'ma*******************' (confidence=0.85)
+- DATE_TIME: '8:*****' (confidence=0.85)
+- DATE_TIME: '7:*****' (confidence=0.85)
+- PERSON: 'El********************' (confidence=0.85)
+- EMAIL_ADDRESS: 'em****************************' (confidence=1.00)
+
+
+
+WARNING: PII detected in generated answer:
+- LOCATION: 'Ma*******' (confidence=0.85)
+- PERSON: 'Ki******' (confidence=0.85)
+
+
+Answer redacted: PII replaced with entity-type placeholders.
+
+[Audit] agent=unstructured check=presidio_pii_detection flagged=True action=answer_redacted (9.5s) -> /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/audit_log.jsonl
+
+Agent: Yes, construction permits were approved for restaurants in the [LOCATION] and [PERSON] neighborhoods.
+
+
+################################################################################
+# QUERY [unstructured]  Which permit documents mention school construction and who applied?
+################################################################################
+
+You: Which permit documents mention school construction and who applied?
+[Router] Selected agent: unstructured
+
+================================================================================
+Using Unstrucutred Data stored in MongoDB database to answer question
+Seraching for PII data in source documents
+================================================================================
+
+WARNING: PII detected in source documents:
+- DATE_TIME: 'Au*******' (confidence=0.85)
+- PERSON: 'Sa****************************************' (confidence=0.85)
+- LOCATION: 'Cr*************' (confidence=0.85)
+- LOCATION: 'Ki******' (confidence=0.85)
+- DATE_TIME: '55************' (confidence=0.85)
+- LOCATION: 'Ki*******************' (confidence=0.85)
+- LOCATION: 'NC***' (confidence=0.85)
+- NRP: 'su********' (confidence=0.85)
+- PERSON: 'ﬁe***' (confidence=0.85)
+- DATE_TIME: 'Ju*****' (confidence=0.85)
+- DATE_TIME: '7:*****' (confidence=0.85)
+- DATE_TIME: '6:*****' (confidence=0.85)
+- DATE_TIME: 'Mo****' (confidence=0.85)
+- PERSON: 'Ka******************************' (confidence=0.85)
+- EMAIL_ADDRESS: 'kh*****************************' (confidence=1.00)
+- DATE_TIME: 'Ma******' (confidence=0.85)
+- PERSON: 'He***************************' (confidence=0.85)
+- LOCATION: 'As*****' (confidence=0.85)
+- LOCATION: 'As******************' (confidence=0.85)
+- DATE_TIME: 'Fe********' (confidence=0.85)
+- PERSON: 'Pl********' (confidence=0.85)
+- PERSON: 'Ma************************' (confidence=0.85)
+- LOCATION: 'Ci****************' (confidence=0.85)
+- LOCATION: 'NC******' (confidence=0.85)
+- EMAIL_ADDRESS: 'mk*******************' (confidence=1.00)
+- DATE_TIME: 'Ja********' (confidence=0.85)
+- DATE_TIME: 'Au*******' (confidence=0.85)
+- PERSON: 'PR*************************' (confidence=0.85)
+- PERSON: 'Ro****************************' (confidence=0.85)
+- PERSON: 'Po**********************************' (confidence=0.85)
+- PERSON: 'Me*****************' (confidence=0.85)
+- PERSON: 'Ve*****' (confidence=0.85)
+- PERSON: 'PR*****************************' (confidence=0.85)
+- LOCATION: 'As**********' (confidence=0.85)
+- DATE_TIME: '4.**********' (confidence=0.85)
+- PERSON: 'sy******' (confidence=0.85)
+- DATE_TIME: 'We******' (confidence=0.85)
+- DATE_TIME: '8:*****' (confidence=0.85)
+- DATE_TIME: 'Sa*******' (confidence=0.85)
+- DATE_TIME: '9:*****' (confidence=0.85)
+- DATE_TIME: '4:***' (confidence=0.85)
+- PERSON: 'Of****' (confidence=0.85)
+- PERSON: 'Li*****************' (confidence=0.85)
+
+
+
+WARNING: PII detected in generated answer:
+- PERSON: 'Ki*******************' (confidence=0.85)
+- PERSON: 'Sa*****************' (confidence=0.85)
+- PERSON: 'He**************' (confidence=0.85)
+
+
+Answer redacted: PII replaced with entity-type placeholders.
+
+[Audit] agent=unstructured check=presidio_pii_detection flagged=True action=answer_redacted (13.8s) -> /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/audit_log.jsonl
+
+Agent: The permit documents mentioning school construction are:
+
+1. [PERSON] – Public High School Development  
+   - Applicant: Dr. [PERSON]
+
+2. Ashford Neighborhood – Public School Development  
+   - Applicant: Dr. [PERSON]
+
+
+################################################################################
+# QUERY [multimodal]  Find me a house like mine
+################################################################################
+
+(query image: query-house-2.jpg)
+You: Find me a house like mine
+[Router] Selected agent: multimodal
+
+================================================================================
+Screening query image before search: /home/architect/Ethic-Multi_agent_data-orchestrator/starter/query-house-2.jpg
+Analyzing image: query-house-2.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: query-house-2.jpg
+
+
+================================================================================
+Using Multimodal (Image files) Data stored in Azure Data Blob to answer question
+Scan images for harmful contente
+================================================================================
+Blob count: 12
+126_Briarwood_Drive_Ashford.jpg
+
+================================================================================
+Analysing image: 126_Briarwood_Drive_Ashford.jpg
+Analyzing image: 126_Briarwood_Drive_Ashford.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 2
+Warning: Harmful content detected in image: 126_Briarwood_Drive_Ashford.jpg
+
+Excluded from results (content safety): 126_Briarwood_Drive_Ashford.jpg
+12_Kingsley_Drive.jpg
+
+================================================================================
+Analysing image: 12_Kingsley_Drive.jpg
+Analyzing image: 12_Kingsley_Drive.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 12_Kingsley_Drive.jpg
+
+15_Rosedale_Avenue.jpg
+
+================================================================================
+Analysing image: 15_Rosedale_Avenue.jpg
+Analyzing image: 15_Rosedale_Avenue.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 15_Rosedale_Avenue.jpg
+
+203_Hillcrest_Lane_Kingsley.jpg
+
+================================================================================
+Analysing image: 203_Hillcrest_Lane_Kingsley.jpg
+Analyzing image: 203_Hillcrest_Lane_Kingsley.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 203_Hillcrest_Lane_Kingsley.jpg
+
+274_Maplewood_Crescent.jpg
+
+================================================================================
+Analysing image: 274_Maplewood_Crescent.jpg
+Analyzing image: 274_Maplewood_Crescent.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 274_Maplewood_Crescent.jpg
+
+33_Maplewood_Lane.jpg
+
+================================================================================
+Analysing image: 33_Maplewood_Lane.jpg
+Analyzing image: 33_Maplewood_Lane.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 33_Maplewood_Lane.jpg
+
+402_Rosedale_Parkway.jpg
+
+================================================================================
+Analysing image: 402_Rosedale_Parkway.jpg
+Analyzing image: 402_Rosedale_Parkway.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 402_Rosedale_Parkway.jpg
+
+48_Oakridge_Court_Kingsley.jpg
+
+================================================================================
+Analysing image: 48_Oakridge_Court_Kingsley.jpg
+Analyzing image: 48_Oakridge_Court_Kingsley.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 48_Oakridge_Court_Kingsley.jpg
+
+510_West_Maplewood_Road.jpg
+
+================================================================================
+Analysing image: 510_West_Maplewood_Road.jpg
+Analyzing image: 510_West_Maplewood_Road.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 510_West_Maplewood_Road.jpg
+
+77_Maple_Ridge_Road_Rosedale.jpg
+
+================================================================================
+Analysing image: 77_Maple_Ridge_Road_Rosedale.jpg
+Analyzing image: 77_Maple_Ridge_Road_Rosedale.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 77_Maple_Ridge_Road_Rosedale.jpg
+
+82_Kingsley_Park_Drive.jpg
+
+================================================================================
+Analysing image: 82_Kingsley_Park_Drive.jpg
+Analyzing image: 82_Kingsley_Park_Drive.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 82_Kingsley_Park_Drive.jpg
+
+9_Ashford_Terrace.jpg
+
+================================================================================
+Analysing image: 9_Ashford_Terrace.jpg
+Analyzing image: 9_Ashford_Terrace.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: 9_Ashford_Terrace.jpg
+
+[Audit] agent=multimodal check=azure_content_safety flagged=True action=flagged_images_excluded (34.8s) -> /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/audit_log.jsonl
+
+Top matches:
+274 Maplewood Crescent | similarity: 0.9335
+82 Kingsley Park Drive | similarity: 0.7118
+9 Ashford Terrace | similarity: 0.6826
+
+================================================================================
+Analysing image: 274_Maplewood_Crescent.jpg
+
+================================================================================
+Analysing image: 82_Kingsley_Park_Drive.jpg
+
+================================================================================
+Analysing image: 9_Ashford_Terrace.jpg
+Saved similarity results to /home/architect/Ethic-Multi_agent_data-orchestrator/starter/similar_houses.png
+
+Agent: Here are the top similar houses I found:
+- 274 Maplewood Crescent (similarity: 0.9335)
+- 82 Kingsley Park Drive (similarity: 0.7118)
+- 9 Ashford Terrace (similarity: 0.6826)
+(1 image(s) were withheld after failing content safety checks.)
+
+
+################################################################################
+# QUERY [multimodal]  Show me a house that looks like this picture
+################################################################################
+
+(query image: query-house-1.jpg)
+You: Show me a house that looks like this picture
+[Router] Selected agent: multimodal
+
+================================================================================
+Screening query image before search: /home/architect/Ethic-Multi_agent_data-orchestrator/starter/query-house-1.jpg
+Analyzing image: query-house-1.jpg
+Hate 0
+SelfHarm 0
+Sexual 0
+Violence 0
+No harmful content detected in image: query-house-1.jpg
+
+
+================================================================================
+Using Multimodal (Image files) Data stored in Azure Data Blob to answer question
+Scan images for harmful contente
+================================================================================
+Blob count: 12
+126_Briarwood_Drive_Ashford.jpg
+
+================================================================================
+Analysing image: 126_Briarwood_Drive_Ashford.jpg
+Excluded from results (content safety): 126_Briarwood_Drive_Ashford.jpg
+12_Kingsley_Drive.jpg
+
+================================================================================
+Analysing image: 12_Kingsley_Drive.jpg
+15_Rosedale_Avenue.jpg
+
+================================================================================
+Analysing image: 15_Rosedale_Avenue.jpg
+203_Hillcrest_Lane_Kingsley.jpg
+
+================================================================================
+Analysing image: 203_Hillcrest_Lane_Kingsley.jpg
+274_Maplewood_Crescent.jpg
+
+================================================================================
+Analysing image: 274_Maplewood_Crescent.jpg
+33_Maplewood_Lane.jpg
+
+================================================================================
+Analysing image: 33_Maplewood_Lane.jpg
+402_Rosedale_Parkway.jpg
+
+================================================================================
+Analysing image: 402_Rosedale_Parkway.jpg
+48_Oakridge_Court_Kingsley.jpg
+
+================================================================================
+Analysing image: 48_Oakridge_Court_Kingsley.jpg
+510_West_Maplewood_Road.jpg
+
+================================================================================
+Analysing image: 510_West_Maplewood_Road.jpg
+77_Maple_Ridge_Road_Rosedale.jpg
+
+================================================================================
+Analysing image: 77_Maple_Ridge_Road_Rosedale.jpg
+82_Kingsley_Park_Drive.jpg
+
+================================================================================
+Analysing image: 82_Kingsley_Park_Drive.jpg
+9_Ashford_Terrace.jpg
+
+================================================================================
+Analysing image: 9_Ashford_Terrace.jpg
+[Audit] agent=multimodal check=azure_content_safety flagged=True action=flagged_images_excluded (10.8s) -> /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/audit_log.jsonl
+
+Top matches:
+48 Oakridge Court Kingsley | similarity: 0.9484
+9 Ashford Terrace | similarity: 0.9089
+77 Maple Ridge Road Rosedale | similarity: 0.8939
+
+================================================================================
+Analysing image: 48_Oakridge_Court_Kingsley.jpg
+
+================================================================================
+Analysing image: 9_Ashford_Terrace.jpg
+
+================================================================================
+Analysing image: 77_Maple_Ridge_Road_Rosedale.jpg
+Saved similarity results to /home/architect/Ethic-Multi_agent_data-orchestrator/starter/similar_houses.png
+
+Agent: Here are the top similar houses I found:
+- 48 Oakridge Court Kingsley (similarity: 0.9484)
+- 9 Ashford Terrace (similarity: 0.9089)
+- 77 Maple Ridge Road Rosedale (similarity: 0.8939)
+(1 image(s) were withheld after failing content safety checks.)
+
+
+################################################################################
+# DONE
+################################################################################
+
+Full log:          /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/experiment_20261108_165921.log
+Audit log (JSONL): /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/audit_log.jsonl
+Similarity figure: /home/architect/Ethic-Multi_agent_data-orchestrator/starter/similar_houses.png

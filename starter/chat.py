@@ -302,7 +302,9 @@ class AgentChatManager:
             print(f"{address} | similarity: {score:.4f}")
 
         if matches:
-            self.multimodal.show_results(query_img, matches, output_path=os.path.join(BASE_DIR, "similar_houses.png"))
+            stem = os.path.splitext(os.path.basename(query_image))[0]
+            self.multimodal.show_results(query_img, matches,
+                                         output_path=os.path.join(BASE_DIR, f"similar_houses_{stem}.png"))
 
         if not matches:
             return "I could not find similar houses."

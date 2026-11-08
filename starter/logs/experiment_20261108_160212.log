@@ -1,0 +1,19 @@
+Logging to /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/experiment_20261108_160212.log
+
+
+################################################################################
+# STEP 0  Azure sign-in (device code)
+################################################################################
+
+Signed in (cached login reused when available).
+
+################################################################################
+# STEP 1  Verify Key Vault secrets
+################################################################################
+
+Vault: https://structuredazureendpoint.vault.azure.net/
+To sign in, use a web browser to open the page https://login.microsoft.com/device and enter the code AXKM795VN to authenticate.
+DeviceCodeCredential.get_token failed: Timed out waiting for user to authenticate
+Cannot list secrets: Timed out waiting for user to authenticate
+Check that you have the 'Key Vault Secrets Officer' or 'Key Vault Secrets User' role on the vault.
+Key Vault check failed; stopping.

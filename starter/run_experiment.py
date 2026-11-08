@@ -2,7 +2,7 @@
 
 Signs in to Azure once with a device code, then:
   1. verifies all Key Vault secrets are readable
-  2. seeds PostgreSQL and Cosmos DB for MongoDB from data/
+  2. seeds PostgreSQL, Cosmos DB for MongoDB and Blob Storage from data/
   3. starts the chat manager and runs six evaluation queries, two per agent
 
 Everything printed is also written to logs/experiment_<timestamp>.log, which serves as
@@ -66,6 +66,7 @@ def main():
     ap.add_argument("--skip-load", action="store_true", help="skip seeding PostgreSQL and MongoDB")
     ap.add_argument("--skip-postgres", action="store_true", help="skip seeding PostgreSQL only")
     ap.add_argument("--skip-mongo", action="store_true", help="skip seeding MongoDB only")
+    ap.add_argument("--skip-blob", action="store_true", help="skip uploading house images to Blob Storage")
     ap.add_argument("--skip-verify", action="store_true", help="skip the Key Vault secret check")
     args = ap.parse_args()
 
@@ -100,6 +101,11 @@ def main():
         import unstructured_load_azure
         unstructured_load_azure.load_pdfs_to_mongo()
 
+    if not (args.skip_load or args.skip_blob):
+        banner("STEP 2c  Ensure house images are in Blob Storage container 'houses'")
+        import upload_images
+        upload_images.ensure_images(_shared)
+
     banner("STEP 3  Start chat manager (loads all three agents)")
     import chat  # performs secret retrieval and nothing else at import
 
@@ -127,7 +133,7 @@ def main():
     banner("DONE")
     print(f"Full log:          {log_path}")
     print(f"Audit log (JSONL): {BASE / 'logs' / 'audit_log.jsonl'}")
-    print(f"Similarity figure: {BASE / 'similar_houses.png'}")
+    print(f"Similarity figures: {BASE}/similar_houses_<query-image>.png")
     return 0
 
 

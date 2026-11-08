@@ -140,11 +140,17 @@ class StructuredDataAgent:
             "orientation",
         ]
 
-        # Match whole tokens of snake_case identifiers so "age" does not hit "average".
-        return [
-            col for col in columns
-            if any(tok in keywords for tok in str(col).lower().split("_"))
-        ]
+        # Aggregate measures such as average_age or median_income describe a group,
+        # not an individual's protected attribute, so they are not demographic columns.
+        aggregate_prefixes = {"average", "avg", "mean", "median", "total", "sum", "pct", "percent"}
+
+        def is_demographic(col):
+            tokens = str(col).lower().split("_")
+            if any(tok in aggregate_prefixes for tok in tokens):
+                return False
+            return any(tok in keywords for tok in tokens)
+
+        return [col for col in columns if is_demographic(col)]
 
     # ============================================
     # FAIRNESS ENGINE

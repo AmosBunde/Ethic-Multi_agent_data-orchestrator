@@ -1,0 +1,15 @@
+Logging to /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/experiment_20261108_155457.log
+
+
+################################################################################
+# STEP 0  Azure sign-in (device code)
+################################################################################
+
+Signed in (cached login reused when available).
+
+################################################################################
+# STEP 1  Verify Key Vault secrets
+################################################################################
+
+Vault: https://structuredazureendpoint.vault.azure.net/
+To sign in, use a web browser to open the page https://login.microsoft.com/device and enter the code FDJZFCLVW to authenticate.

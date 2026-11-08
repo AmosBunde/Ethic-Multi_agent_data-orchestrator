@@ -1,0 +1,20 @@
+Logging to /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/experiment_20261108_163407.log
+
+
+################################################################################
+# STEP 0  Azure sign-in (device code)
+################################################################################
+
+Signed in (cached login reused when available).
+
+################################################################################
+# STEP 1  Verify Key Vault secrets
+################################################################################
+
+Vault: https://structuredazureendpoint.vault.azure.net/
+To sign in, use a web browser to open the page https://login.microsoft.com/device and enter the code B57CJ4U5V to authenticate.
+DeviceCodeCredential.get_token failed: Authentication failed: AADSTS70020: The provided value for the input parameter 'device_code' is not valid. This device code has expired. Trace ID: 5f881b0d-348a-4bb7-9b4f-0ec1d8793200 Correlation ID: 5ba20085-f124-4dc8-840c-e5978d71e4c4 Timestamp: 2026-11-08 13:49:10Z
+Content: {"error":"expired_token","error_description":"AADSTS70020: The provided value for the input parameter 'device_code' is not valid. This device code has expired. Trace ID: 5f881b0d-348a-4bb7-9b4f-0ec1d8793200 Correlation ID: 5ba20085-f124-4dc8-840c-e5978d71e4c4 Timestamp: 2026-11-08 13:49:10Z","error_codes":[70020],"timestamp":"2026-11-08 13:49:10Z","trace_id":"5f881b0d-348a-4bb7-9b4f-0ec1d8793200","correlation_id":"5ba20085-f124-4dc8-840c-e5978d71e4c4","error_uri":"https://login.microsoftonline.com/error?code=70020"}
+Cannot list secrets: Authentication failed: AADSTS70020: The provided value for the input parameter 'device_code' is not valid. This device code has expired. Trace ID: 5f881b0d-348a-4bb7-9b4f-0ec1d8793200 Correlation ID: 5ba20085-f124-4dc8-840c-e5978d71e4c4 Timestamp: 2026-11-08 13:49:10Z
+Check that you have the 'Key Vault Secrets Officer' or 'Key Vault Secrets User' role on the vault.
+Key Vault check failed; stopping.

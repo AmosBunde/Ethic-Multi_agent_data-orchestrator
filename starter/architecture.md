@@ -136,7 +136,7 @@ sequenceDiagram
 
 | Aspect | Implementation |
 |---|---|
-| Data source | Azure Blob Storage, container `houses`, 13 JPEG images named by address |
+| Data source | Azure Blob Storage, container `houses`, 12 JPEG images named by address |
 | Model | OpenAI CLIP `clip-vit-base-patch32` via Hugging Face Transformers, run locally on CPU |
 | How it answers | Every blob is downloaded, embedded alongside the query image, and ranked by cosine similarity. The top 3 addresses are returned and a comparison figure is saved to `similar_houses.png` |
 | Ethical check | **Azure AI Content Safety image analysis.** The user's **query image is screened first**; then each blob is analysed for Hate, SelfHarm, Sexual, and Violence. Results are cached per blob for the session |
