@@ -141,17 +141,37 @@ Answer clearly and concisely:
 """
 
         response = self.llm.invoke(prompt)
+        answer = response.content if isinstance(response.content, str) else str(response.content)
+
+        audit = {
+            "ran": bool(run_pii_audit),
+            "pii_in_sources": [],
+            "pii_in_answer": [],
+            "redacted": False,
+            "flagged": False,
+        }
 
         if run_pii_audit:
             print("\n" + "=" * 80)
             print("Using Unstrucutred Data stored in MongoDB database to answer question")
             print("Seraching for PII data in source documents")
             print("=" * 80)
-            self.__contains_pii(str(source_docs))
+            audit["pii_in_sources"] = self.__detect_pii(str(source_docs), label="source documents")
+
+            # Actionable check: PII that leaked into the generated answer is redacted
+            # before the answer leaves the agent.
+            audit["pii_in_answer"] = self.__detect_pii(answer, label="generated answer")
+            if audit["pii_in_answer"]:
+                answer = self.__redact(answer, audit["pii_in_answer"])
+                audit["redacted"] = True
+                print("Answer redacted: PII replaced with entity-type placeholders.\n")
+
+            audit["flagged"] = bool(audit["pii_in_sources"] or audit["pii_in_answer"])
 
         return {
-            "response": response.content,
+            "response": answer,
             "sources": [s["mongo_id"] for s in source_docs],
+            "audit": audit,
         }
 
 
@@ -167,7 +187,8 @@ Answer clearly and concisely:
     # PRIVATE METHODS 
     # ============================================
 
-    def __contains_pii(self,text: str) -> bool:
+    def __detect_pii(self, text: str, label: str = "text", min_score: float = 0.85) -> list:
+        """Run Presidio and return unique high-confidence entities as dicts."""
         analyzer = AnalyzerEngine()
 
         results = analyzer.analyze(
@@ -175,19 +196,36 @@ Answer clearly and concisely:
             language="en"
         )
 
-        if results:
-            seen = set()  # track unique PII
-            print("\nWARNING: PII detected:")
-            for r in results:
-                # skip URLs
-                if r.entity_type == "URL" or r.score < 0.85:
-                    continue
-                pii_text = text[r.start:r.end]
-                if pii_text not in seen:
-                    seen.add(pii_text)
-                    print(f"- {r.entity_type}: '{pii_text}' (confidence={r.score:.2f})")
-            print("\n")
-            return True
+        found = []
+        seen = set()  # track unique PII
+        for r in sorted(results, key=lambda r: r.start):
+            # skip URLs and low-confidence hits
+            if r.entity_type == "URL" or r.score < min_score:
+                continue
+            pii_text = text[r.start:r.end]
+            if pii_text not in seen:
+                seen.add(pii_text)
+                found.append({
+                    "entity_type": r.entity_type,
+                    "text": pii_text,
+                    "score": round(float(r.score), 2),
+                    "start": r.start,
+                    "end": r.end,
+                })
 
-        print("\n No PII detected.\n")
-        return False
+        if found:
+            print(f"\nWARNING: PII detected in {label}:")
+            for f in found:
+                print(f"- {f['entity_type']}: '{f['text']}' (confidence={f['score']:.2f})")
+            print("\n")
+        else:
+            print(f"\n No PII detected in {label}.\n")
+
+        return found
+
+    @staticmethod
+    def __redact(text: str, entities: list) -> str:
+        """Replace every occurrence of each detected PII string with a placeholder."""
+        for e in sorted(entities, key=lambda e: len(e["text"]), reverse=True):
+            text = text.replace(e["text"], f"[{e['entity_type']}]")
+        return text

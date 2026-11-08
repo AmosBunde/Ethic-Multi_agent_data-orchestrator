@@ -1,0 +1,100 @@
+Logging to /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/experiment_20261108_132302.log
+
+
+################################################################################
+# STEP 0  Azure sign-in (device code)
+################################################################################
+
+Sign-in is requested on first vault access; one prompt only.
+
+################################################################################
+# STEP 1  Verify Key Vault secrets
+################################################################################
+
+Vault: https://structuredazureendpoint.vault.azure.net/
+To sign in, use a web browser to open the page https://login.microsoft.com/device and enter the code BARWXQTC2 to authenticate.
+  ok       ai-endpoint
+  ok       ai-key
+  ok       postgres-host
+  ok       postgres-database
+  ok       postgres-user
+  ok       postgres-password
+  ok       mongodb-connection-string
+  ok       mongodb-database
+  ok       blob-connection-string
+  ok       content-safety-endpoint
+  ok       content-safety-key
+
+All expected secrets present.
+
+################################################################################
+# STEP 2b  Seed Cosmos DB for MongoDB from data/unstructured
+################################################################################
+
+Processing: ASF‑CNST‑POOL‑2026‑1142.pdf
+Processing: ASF‑CNST‑POOL‑2026‑3378.pdf
+Processing: ASF‑CNST‑POOL‑2026‑8841.pdf
+Processing: AS‑SCH‑2022‑118.pdf
+Processing: BKS‑CNST‑POOL‑2026‑2031.pdf
+Processing: HT‑CM‑2022‑031.pdf
+Processing: HT‑MX‑2020‑144.pdf
+Processing: KNG‑CNST‑POOL‑2026‑0917.pdf
+Processing: KS‑HS‑2020‑441.pdf
+Processing: KS‑RST‑2020‑219.pdf
+Processing: MC‑SC‑2021‑087.pdf
+Processing: MPW‑CNST‑POOL‑2013‑1184.pdf
+Processing: MPW‑CNST‑POOL‑2015‑3321.pdf
+Processing: MPW‑CNST‑POOL‑2017‑5590.pdf
+Processing: MPW‑CNST‑POOL‑2019‑8842.pdf
+Processing: MW‑FFR‑2021‑302.pdf
+Processing: RSD‑CNST‑POOL‑2026‑1183.pdf
+Processing: RSD‑CNST‑POOL‑2026‑2314.pdf
+Processing: RSD‑CNST‑POOL‑2026‑4472.pdf
+Processing: RSD‑CNST‑POOL‑2026‑9928.pdf
+Processing: WLB‑CNST‑POOL‑2026‑0874.pdf
+All 21 PDFs loaded into MongoDB (houses.permits).
+
+################################################################################
+# STEP 3  Start chat manager (loads all three agents)
+################################################################################
+
+Connecting to Azure for authentication.
+
+Loading Structured Data Agent
+-------------------------------
+
+Loading Unstructured Data Agent
+---------------------------------
+Loading documents from MongoDB...
+Embedding 21 documents...
+Traceback (most recent call last):
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/run_experiment.py", line 126, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/run_experiment.py", line 106, in main
+    manager = chat.AgentChatManager()
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/chat.py", line 65, in __init__
+    self._load_agents()
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/chat.py", line 100, in _load_agents
+    self.unstructured.build_index()
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/agents/unstructured_data_agent.py", line 89, in build_index
+    self.vector_db.add_texts(
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/langchain_chroma/vectorstores.py", line 627, in add_texts
+    embeddings = self._embedding_function.embed_documents(texts)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/langchain_openai/embeddings/base.py", line 757, in embed_documents
+    return self._get_len_safe_embeddings(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/langchain_openai/embeddings/base.py", line 624, in _get_len_safe_embeddings
+    response = self.client.create(input=batch_tokens, **client_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/openai/resources/embeddings.py", line 113, in create
+    return self._post(
+           ^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/openai/_base_client.py", line 1474, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/openai/_base_client.py", line 1248, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.NotFoundError: Error code: 404 - The API deployment for this resource does not exist. If you created the deployment within the last 5 minutes, please wait a moment and try again.

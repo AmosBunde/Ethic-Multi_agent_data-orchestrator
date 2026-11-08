@@ -3,7 +3,7 @@
 Signs in to Azure once with a device code, then:
   1. verifies all Key Vault secrets are readable
   2. seeds PostgreSQL and Cosmos DB for MongoDB from data/
-  3. starts the chat manager and runs the three sample queries
+  3. starts the chat manager and runs six evaluation queries, two per agent
 
 Everything printed is also written to logs/experiment_<timestamp>.log, which serves as
 the terminal log for the submission. Run from the starter/ folder:
@@ -105,19 +105,28 @@ def main():
 
     manager = chat.AgentChatManager()
 
+    # Two evaluation prompts per agent (rubric minimum: six). The second multimodal
+    # prompt switches the query image so both sample images are exercised.
     queries = [
-        "Which demographic group has the most expensive homes?",
-        "Was a permit approved for a restaurant in any of the neighborhoods?",
-        "Find me a house like mine",
+        ("structured",   "Which demographic group has the most expensive homes?", None),
+        ("structured",   "How many houses have a swimming pool in each neighborhood?", None),
+        ("unstructured", "Was a permit approved for a restaurant in any of the neighborhoods?", None),
+        ("unstructured", "Which permit documents mention school construction and who applied?", None),
+        ("multimodal",   "Find me a house like mine", "query-house-2.jpg"),
+        ("multimodal",   "Show me a house that looks like this picture", "query-house-1.jpg"),
     ]
-    for q in queries:
-        banner(f"QUERY  {q}")
+    for expected, q, image in queries:
+        banner(f"QUERY [{expected}]  {q}")
+        if image:
+            manager.query_image = image
+            print(f"(query image: {image})")
         print(f"You: {q}")
         answer = manager.chat(q)
         print(f"\nAgent: {answer}\n")
 
     banner("DONE")
-    print(f"Full log: {log_path}")
+    print(f"Full log:          {log_path}")
+    print(f"Audit log (JSONL): {BASE / 'logs' / 'audit_log.jsonl'}")
     print(f"Similarity figure: {BASE / 'similar_houses.png'}")
     return 0
 

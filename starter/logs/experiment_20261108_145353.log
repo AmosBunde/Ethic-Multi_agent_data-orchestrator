@@ -1,0 +1,114 @@
+Logging to /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/experiment_20261108_145353.log
+
+
+################################################################################
+# STEP 0  Azure sign-in (device code)
+################################################################################
+
+Signed in (cached login reused when available).
+
+################################################################################
+# STEP 1  Verify Key Vault secrets
+################################################################################
+
+Vault: https://structuredazureendpoint.vault.azure.net/
+  ok       ai-endpoint
+  ok       ai-key
+  ok       postgres-host
+  ok       postgres-database
+  ok       postgres-user
+  ok       postgres-password
+  ok       mongodb-connection-string
+  ok       mongodb-database
+  ok       blob-connection-string
+  ok       content-safety-endpoint
+  ok       content-safety-key
+
+All expected secrets present.
+
+################################################################################
+# STEP 3  Start chat manager (loads all three agents)
+################################################################################
+
+Connecting to Azure for authentication.
+
+Loading Structured Data Agent
+-------------------------------
+Traceback (most recent call last):
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/run_experiment.py", line 135, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/run_experiment.py", line 106, in main
+    manager = chat.AgentChatManager()
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/chat.py", line 92, in __init__
+    self._load_agents()
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/chat.py", line 101, in _load_agents
+    self.structured = StructuredDataAgent(
+                      ^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/agents/structured_data_agent.py", line 48, in __init__
+    self.db = SQLDatabase.from_uri(self.db_uri)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/langchain_community/utilities/sql_database.py", line 180, in from_uri
+    return cls(create_engine(database_uri, **_engine_args), **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/langchain_community/utilities/sql_database.py", line 106, in __init__
+    self._inspector = inspect(self._engine)
+                      ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/inspection.py", line 141, in inspect
+    ret = reg(subject)
+          ^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/engine/reflection.py", line 321, in _engine_insp
+    return Inspector._construct(Inspector._init_engine, bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/engine/reflection.py", line 254, in _construct
+    init(self, bind)
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/engine/reflection.py", line 265, in _init_engine
+    engine.connect().close()
+    ^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3279, in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 154, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 3303, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 445, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 1340, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 713, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 176, in _do_get
+    with util.safe_reraise():
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 166, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/pool/impl.py", line 174, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 386, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 675, in __init__
+    self.__connect()
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 932, in __connect
+    with util.safe_reraise():
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py", line 166, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/pool/base.py", line 928, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/engine/create.py", line 645, in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 869, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/psycopg/connection.py", line 118, in connect
+    raise ex.with_traceback(None)
+KeyboardInterrupt

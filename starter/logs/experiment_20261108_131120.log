@@ -1,0 +1,111 @@
+Logging to /home/architect/Ethic-Multi_agent_data-orchestrator/starter/logs/experiment_20261108_131120.log
+
+
+################################################################################
+# STEP 0  Azure sign-in (device code)
+################################################################################
+
+To sign in, use a web browser to open the page https://login.microsoft.com/device and enter the code DGP65G8E3 to authenticate.
+Signed in.
+
+################################################################################
+# STEP 1  Verify Key Vault secrets
+################################################################################
+
+Vault: https://structuredazureendpoint.vault.azure.net/
+To sign in, use a web browser to open the page https://login.microsoft.com/device and enter the code AFW8CRXXR to authenticate.
+  ok       ai-endpoint
+  ok       ai-key
+  ok       postgres-host
+  ok       postgres-database
+  ok       postgres-user
+  ok       postgres-password
+  ok       mongodb-connection-string
+  ok       mongodb-database
+  ok       blob-connection-string
+  ok       content-safety-endpoint
+  ok       content-safety-key
+
+All expected secrets present.
+
+################################################################################
+# STEP 2a  Seed PostgreSQL from data/structured
+################################################################################
+
+
+Processing: education_survey.csv
+✔ Table created: education_survey
+✔ Loaded 2580 rows into education_survey
+
+Processing: neighborhood_hospitals.csv
+✔ Table created: neighborhood_hospitals
+✔ Loaded 6 rows into neighborhood_hospitals
+
+Processing: neighborhood_houses.csv
+✔ Table created: neighborhood_houses
+✔ Loaded 5540 rows into neighborhood_houses
+
+Processing: neighborhood_schools.csv
+✔ Table created: neighborhood_schools
+✔ Loaded 10 rows into neighborhood_schools
+
+✅ All datasets ingested successfully!
+
+################################################################################
+# STEP 2b  Seed Cosmos DB for MongoDB from data/unstructured
+################################################################################
+
+Traceback (most recent call last):
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/run_experiment.py", line 121, in <module>
+    if __name__ == "__main__":
+                 ^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/run_experiment.py", line 96, in main
+    import unstructured_load_azure
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/data/unstructured_load_azure.py", line 29, in load_pdfs_to_mongo
+    if COLLECTION_NAME not in db.list_collection_names():
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/database.py", line 1247, in list_collection_names
+    return self._list_collection_names(session, filter, comment, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/database.py", line 1212, in _list_collection_names
+    result["name"] for result in self._list_collections_helper(session=session, **kwargs)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/database.py", line 1150, in _list_collections_helper
+    return self._client._retryable_read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 2116, in _retryable_read
+    return self._retry_internal(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/_csot.py", line 126, in csot_wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 2077, in _retry_internal
+    ).run()
+      ^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 2947, in run
+    res = self._read() if self._is_read else self._write()
+          ^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 3175, in _read
+    self._server = self._get_server()
+                   ^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 3120, in _get_server
+    return self._client._select_server(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/mongo_client.py", line 1917, in _select_server
+    server = topology.select_server(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/topology.py", line 357, in select_server
+    server = self._select_server(
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/topology.py", line 331, in _select_server
+    servers = self.select_servers(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/topology.py", line 249, in select_servers
+    server_descriptions = self._select_servers_loop(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/synchronous/topology.py", line 313, in _select_servers_loop
+    self._description.check_compatible()
+  File "/home/architect/Ethic-Multi_agent_data-orchestrator/starter/.venv/lib/python3.12/site-packages/pymongo/topology_description.py", line 158, in check_compatible
+    raise ConfigurationError(self._incompatible_err)
+pymongo.errors.ConfigurationError: Server at cosmos-houses-3mjycoshvc-westus.mongo.cosmos.azure.com:10255 reports wire version 6, but this version of PyMongo requires at least 9 (MongoDB 4.4).

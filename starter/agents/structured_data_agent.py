@@ -67,14 +67,40 @@ class StructuredDataAgent:
             if verbose:
                 print(msg.pretty_repr())
 
+        audit = {"ran": bool(run_bias_audit), "findings": [], "flagged": False}
+
         if run_bias_audit:
             print("\n" + "=" * 80)
             print("Using Strucutred Data stored in PostgresQL database to answer question")
             print("Performing a Fairness audit before providing answer")
             print("=" * 80)
-            self.__auto_bias_check(self.db_uri)
+            findings = self.__auto_bias_check(self.db_uri)
+            flagged = [f for f in findings if f["flagged"]]
+            audit["findings"] = findings
+            audit["flagged"] = bool(flagged)
 
-        return {"question": question, "response": response_text}
+            # Actionable check: the answer carries a fairness advisory when the
+            # underlying data shows disparities across demographic groups.
+            if flagged:
+                response_text = self.__bias_advisory(flagged) + "\n\n" + response_text
+
+        return {"question": question, "response": response_text, "audit": audit}
+
+    # ============================================
+    # ADVISORY TEXT
+    # ============================================
+    def __bias_advisory(self, flagged):
+        groups = sorted({f["demographic_column"] for f in flagged})
+        examples = "; ".join(
+            f"{f['table']}.{f['column']} by {f['demographic_column']} ({f['metric']}={f['value']:.2f})"
+            for f in flagged[:3]
+        )
+        more = f" and {len(flagged) - 3} more" if len(flagged) > 3 else ""
+        return (
+            "FAIRNESS ADVISORY: the data behind this answer shows disparities across "
+            f"{', '.join(groups)}. Examples: {examples}{more}. "
+            "Group-level comparisons should not be used to make decisions about individuals."
+        )
 
     # ============================================
     # TABLE DISCOVERY
@@ -125,6 +151,20 @@ class StructuredDataAgent:
     # ============================================
     def __run_fairness_analysis(self, df, table_name, demographic_column):
 
+        findings = []
+
+        def record(column, kind, metric, value, threshold, flagged):
+            findings.append({
+                "table": table_name,
+                "demographic_column": demographic_column,
+                "column": column,
+                "type": kind,
+                "metric": metric,
+                "value": float(value),
+                "threshold": threshold,
+                "flagged": bool(flagged),
+            })
+
         print("\n" + "-" * 70)
         print(f"TABLE: {table_name}")
         print(f"DEMOGRAPHIC COLUMN: {demographic_column}")
@@ -133,7 +173,7 @@ class StructuredDataAgent:
         if df[demographic_column].nunique() > 10:
             print("Skipping: demographic column has more than 10 distinct groups "
                   "(continuous attribute, bucket it first)")
-            return
+            return findings
 
         for col in df.columns:
 
@@ -147,15 +187,26 @@ class StructuredDataAgent:
             print(f"\nAnalyzing column: {col}")
 
             unique_count = temp[col].nunique()
+            values = sorted(temp[col].unique(), key=str)
+            bool_like = set(map(str, values)) <= {"0", "1", "True", "False", "true", "false"}
+            is_binary = unique_count == 2 and (bool_like or not pd.api.types.is_numeric_dtype(temp[col]))
 
             # ============================================
             # BINARY → Fairlearn
             # ============================================
-            if unique_count == 2:
+            if is_binary:
 
                 print("Type: Binary (classification fairness)")
 
-                y = temp[col]
+                # Fairlearn's selection_rate expects 0/1 labels. Map the two observed
+                # values explicitly so booleans and yes/no style strings produce a
+                # meaningful rate instead of silently reporting 0.
+                if bool_like:
+                    positive = [v for v in values if str(v) in ("1", "True", "true")][0]
+                else:
+                    positive = values[-1]
+                print(f"Positive label: {positive!r}")
+                y = (temp[col] == positive).astype(int)
                 sensitive = temp[demographic_column]
 
                 metric_frame = MetricFrame(
@@ -176,7 +227,9 @@ class StructuredDataAgent:
 
                 print(f"Demographic Parity Difference: {dp_diff:.4f}")
 
-                if abs(dp_diff) > 0.10:
+                flagged = abs(dp_diff) > 0.10
+                record(col, "binary", "demographic_parity_difference", dp_diff, 0.10, flagged)
+                if flagged:
                     print("Potential bias detected")
                 else:
                     print("Within fairness threshold")
@@ -198,7 +251,9 @@ class StructuredDataAgent:
 
                 print(f"Mean ratio (min/max): {ratio:.3f}")
 
-                if ratio < 0.80:
+                flagged = ratio < 0.80
+                record(col, "numeric", "mean_ratio_min_max", ratio, 0.80, flagged)
+                if flagged:
                     print("Large disparity detected")
                 else:
                     print("No major disparity")
@@ -218,9 +273,14 @@ class StructuredDataAgent:
 
                 print("\nPercentage distribution by group:")
                 print(dist.round(2))
+                # Largest spread of any category share across groups, in percentage points.
+                spread = float((dist.max() - dist.min()).max())
+                record(col, "categorical", "max_share_spread_pct", spread, 20.0, spread > 20.0)
 
             else:
                 print("Skipping (too many categories)")
+
+        return findings
 
     # ============================================
     # AUTO BIAS CHECK
@@ -228,6 +288,7 @@ class StructuredDataAgent:
     def __auto_bias_check(self, db_uri):
 
         tables, engine = self.__discover_tables(db_uri)
+        findings = []
 
         for table_name in tables:
 
@@ -239,4 +300,6 @@ class StructuredDataAgent:
                 continue
 
             for demo_col in demographic_cols:
-                self.__run_fairness_analysis(df, table_name, demo_col)
+                findings.extend(self.__run_fairness_analysis(df, table_name, demo_col))
+
+        return findings

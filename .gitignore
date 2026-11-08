@@ -16,4 +16,4 @@ starter/data/chroma_db_storage/
 
 # Local virtualenv and run logs
 starter/.venv/
-starter/logs/
+starter/logs/experiment_*.log.bak

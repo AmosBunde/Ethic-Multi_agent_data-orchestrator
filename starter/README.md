@@ -379,10 +379,24 @@ Vault setup.
   passwords, as the project setup steps require. The Mongo loader upserts by filename,
   so re-running does not duplicate documents.
 
+### Stand-out features added
+
+- **Audit log.** `chat.py` writes `logs/audit_log.jsonl`: one record per query with agent,
+  data source, ethical check, findings, action taken, and latency.
+- **Query-image screening.** The multimodal agent runs Azure Content Safety on the user's
+  query image before any similarity search and aborts if it is flagged.
+- **Actionable checks.** Fairness disparities add an advisory to the structured answer;
+  PII found in the generated answer is redacted; images failing content safety are
+  excluded from results.
+- **Six evaluation prompts.** `run_experiment.py` runs two prompts per agent and switches
+  the query image for the second multimodal prompt.
+
 ### Extra dependencies
 
 - `PyPDF2`, used by the PDF loader, was missing from requirements.
-- `pymongo[srv]` guarantees `dnspython` is present for `mongodb+srv://` URIs.
+- `pymongo` is pinned below 4.11 because the Cosmos DB for MongoDB account is the RU
+  tier on server version 3.6 (wire version 6), which newer PyMongo releases refuse.
+  `dnspython` is listed explicitly for `mongodb+srv://` URIs.
 - Presidio needs the spaCy model: `python -m spacy download en_core_web_lg`.
 - First run downloads Torch, Transformers, and the CLIP model, roughly 3 GB.
 - `langchain-community` is sunset and `create_react_agent` is deprecated. Pin versions
@@ -414,3 +428,5 @@ python data/structured_load_azure.py
 python data/unstructured_load_azure.py
 python chat.py
 ```
+
+Or run everything with one sign-in and a saved terminal log: `python run_experiment.py`.

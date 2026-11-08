@@ -1,5 +1,8 @@
 import os
+import json
+import time
 import warnings
+from datetime import datetime, timezone
 warnings.filterwarnings("ignore", message="Field.*conflict with protected namespace")
 
 from azure.keyvault.secrets import SecretClient
@@ -57,11 +60,35 @@ multimodalazurecontentsafetyendpoint = client.get_secret("content-safety-endpoin
 multimodalazurecontentsafetykey = client.get_secret("content-safety-key").value
 
 # ============================================================
+#  Audit Log
+# ============================================================
+
+class AuditLogger:
+    """Append-only JSON Lines log: one record per query with the agent invoked, the
+    ethical check that ran, what it found, and what the system did about it."""
+
+    def __init__(self, path):
+        self.path = path
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+
+    def record(self, **entry):
+        entry = {"timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"), **entry}
+        with open(self.path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, default=str) + "\n")
+        print(f"[Audit] agent={entry.get('agent')} check={entry.get('check')} "
+              f"flagged={entry.get('flagged')} action={entry.get('action')} "
+              f"({entry.get('latency_s')}s) -> {self.path}")
+        return entry
+
+
+# ============================================================
 #  Chat Manager
 # ============================================================
 
 class AgentChatManager:
-    def __init__(self):
+    def __init__(self, audit_log_path=None, query_image="query-house-2.jpg"):
+        self.audit = AuditLogger(audit_log_path or os.path.join(BASE_DIR, "logs", "audit_log.jsonl"))
+        self.query_image = query_image  # file in starter/ used by the multimodal agent
         self._load_agents()
 
     # -------------------------
@@ -186,34 +213,94 @@ class AgentChatManager:
     #  Agent wrappers
     # -------------------------
     def _run_structured(self, prompt: str) -> str:
+        t0 = time.time()
         result = self.structured.ask(prompt, verbose=False, run_bias_audit=True)
+        audit = result.get("audit", {})
+        flagged_items = [f for f in audit.get("findings", []) if f.get("flagged")]
 
-        if isinstance(result, dict):
-            return result.get("response", str(result))
-
-        return str(result)
+        self.audit.record(
+            query=prompt,
+            agent="structured",
+            data_source="postgresql",
+            check="fairlearn_bias_audit",
+            flagged=audit.get("flagged", False),
+            findings_total=len(audit.get("findings", [])),
+            findings_flagged=len(flagged_items),
+            details=flagged_items[:10],
+            action="fairness_advisory_prepended" if flagged_items else "none",
+            latency_s=round(time.time() - t0, 1),
+        )
+        return result.get("response", str(result))
 
     def _run_unstructured(self, prompt: str) -> str:
+        t0 = time.time()
         result = self.unstructured.ask(prompt, run_pii_audit=True)
+        audit = result.get("audit", {})
 
-        if isinstance(result, dict):
-            return result.get("response", str(result))
+        if audit.get("redacted"):
+            action = "answer_redacted"
+        elif audit.get("pii_in_sources"):
+            action = "pii_in_sources_logged"
+        else:
+            action = "none"
 
-        return str(result)
+        self.audit.record(
+            query=prompt,
+            agent="unstructured",
+            data_source="mongodb",
+            check="presidio_pii_detection",
+            flagged=audit.get("flagged", False),
+            pii_in_sources=[{k: v for k, v in e.items() if k in ("entity_type", "score")}
+                            for e in audit.get("pii_in_sources", [])],
+            pii_in_answer=[{k: v for k, v in e.items() if k in ("entity_type", "score")}
+                           for e in audit.get("pii_in_answer", [])],
+            sources=result.get("sources", []),
+            action=action,
+            latency_s=round(time.time() - t0, 1),
+        )
+        return result.get("response", str(result))
 
     def _run_multimodal(self, prompt: str) -> str:
         """
-        Right now your original code ignored the prompt and always used
-        query-house-2.jpg. Keeping that behavior here for parity.
+        The prompt is not used to pick an image; the query image is self.query_image
+        (query-house-2.jpg by default, change it to query-house-1.jpg to test the other).
         """
-        query_image = os.path.join(BASE_DIR, "query-house-2.jpg")  # or query-house-1.jpg to test the other image
-        matches, query_img = self.multimodal.find_similar(query_image)
+        t0 = time.time()
+        query_image = os.path.join(BASE_DIR, self.query_image)
+        matches, query_img, safety = self.multimodal.find_similar(query_image)
+
+        if safety["query_blocked"]:
+            action = "query_image_blocked"
+        elif safety["excluded"]:
+            action = "flagged_images_excluded"
+        else:
+            action = "none"
+
+        self.audit.record(
+            query=prompt,
+            agent="multimodal",
+            data_source="azure_blob_storage",
+            check="azure_content_safety",
+            flagged=safety["query_blocked"] or bool(safety["excluded"]),
+            query_image=safety["query_image"],
+            images_scanned=len(safety["blobs"]),
+            images_excluded=safety["excluded"],
+            blob_severities={b["image"]: b["categories"] for b in safety["blobs"]},
+            action=action,
+            latency_s=round(time.time() - t0, 1),
+        )
+
+        if safety["query_blocked"]:
+            cats = safety["query_image"]["categories"]
+            return ("Your query image did not pass the content safety screening "
+                    f"(severity by category: {cats}). The similarity search was not run.")
 
         print("\nTop matches:")
         for score, path, address in matches:
             print(f"{address} | similarity: {score:.4f}")
 
-        self.multimodal.show_results(query_img, matches, output_path=os.path.join(BASE_DIR, "similar_houses.png"))
+        if matches:
+            self.multimodal.show_results(query_img, matches, output_path=os.path.join(BASE_DIR, "similar_houses.png"))
 
         if not matches:
             return "I could not find similar houses."
@@ -221,6 +308,8 @@ class AgentChatManager:
         lines = ["Here are the top similar houses I found:"]
         for score, path, address in matches[:5]:
             lines.append(f"- {address} (similarity: {score:.4f})")
+        if safety["excluded"]:
+            lines.append(f"({len(safety['excluded'])} image(s) were withheld after failing content safety checks.)")
 
         return "\n".join(lines)
 
@@ -243,6 +332,8 @@ class AgentChatManager:
 
             return "I could not determine the correct agent."
         except Exception as e:
+            self.audit.record(query=user_message, agent=route, check="error", flagged=None,
+                              action="error_returned", error=str(e)[:500], latency_s=None)
             return f"An error occurred while processing your request with the {route} agent: {e}"
 
 
